@@ -8,7 +8,4 @@ add_executable(${PROJECT_NAME} src/main.cpp)
 target_include_directories(${PROJECT_NAME} PRIVATE deps/raylib/src)
 target_link_libraries(${PROJECT_NAME} PRIVATE raylib)
 
-if(UNIX)
-    target_link_libraries(${PROJECT_NAME} PRIVATE m pthread dl rt X11)
-
 target_compile_features(${PROJECT_NAME} PRIVATE cxx_std_23)
