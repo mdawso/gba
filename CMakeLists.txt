@@ -9,9 +9,12 @@ set(CXX_EXTENSIONS OFF)
 
 set(GBA_SOURCE_FILES 
     src/main.cpp
-    src/types.hpp
+    src/Types.hpp
     src/CPU_ARM7TDMI.cpp
     src/CPU_ARM7TDMI.hpp
+    src/Bus.cpp
+    src/Bus.hpp
+    src/Helpers.hpp
     )
     
 add_executable(${TARGET_NAME} ${GBA_SOURCE_FILES})

@@ -1,0 +1,7 @@
+#pragma once
+
+#include <cstdint>
+
+using Byte = uint8_t;
+using Halfword = uint16_t;
+using Word = uint32_t;
