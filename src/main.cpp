@@ -5,10 +5,7 @@
 int main() {
 
     IBus* bus = new Bus();
-    bus->WriteByte(0, 0XAA);
-    bus->WriteByte(1, 0XBB);
-    bus->WriteByte(2, 0XCC);
-    bus->WriteByte(3, 0XDD);
+    bus->WriteWord(0, 0xAABBCCDD);
     std::println("Reading byte = {}", bus->ReadByte(0));
     std::println("Reading WORD = {}", bus->ReadWord(0));
 

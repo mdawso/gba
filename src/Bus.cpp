@@ -6,7 +6,9 @@ Halfword IBus::ReadHalfword(Word addr) {
 }
 
 void IBus::WriteHalfword(Word addr, Halfword value) {
-    //
+    Byte low, high;
+    SplitHalfword(value, low, high);
+    WriteByte(addr, low); WriteByte(addr + 1, high);
 }
 
 Word IBus::ReadWord(Word addr) {
@@ -18,7 +20,9 @@ Word IBus::ReadWord(Word addr) {
 }
 
 void IBus::WriteWord(Word addr, Word value) {
-    //
+    Halfword low, high;
+    SplitWord(value, low, high);
+    WriteHalfword(addr, low); WriteHalfword(addr + 2, high);
 }
 
 Bus::Bus() :
