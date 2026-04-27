@@ -22,11 +22,11 @@ void IBus::WriteWord(Word addr, Word value) {
 }
 
 Bus::Bus() :
-_bios(std::array<Byte, 1024 * 16>()),
-_board_wram(std::array<Byte, 1024 * 256>()),
-_chip_wram(std::array<Byte, 1024 * 32>())
+_bios({}),
+_board_wram({}),
+_chip_wram({})
 {
-
+    
 }
 
 Byte Bus::ReadByte(Word addr) {
@@ -61,7 +61,7 @@ Byte Bus::ReadByte(Word addr) {
 void Bus::WriteByte(Word addr, Byte value)
 {
     if (addr >= 0 && addr <= 0x3FFF) {
-        // This is ROM.
+        _bios[addr] = value;
     } else if (addr >= 0x02000000 && addr <= 0x0203FFFF) {
         _board_wram[addr & 0x3FFFF] = value;
     } else if (addr >= 0x03000000 && addr <= 0x03007FFF) {
