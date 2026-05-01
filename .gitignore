@@ -1,3 +1,6 @@
 build/
 [mM]akefile
 *.make
+.cache/
+*.gba
+.vscode/

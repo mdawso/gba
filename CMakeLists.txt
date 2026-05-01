@@ -3,6 +3,7 @@ cmake_minimum_required(VERSION 4.3)
 set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED YES)
 set(CMAKE_CXX_EXTENSIONS OFF)
+set(CMAKE_EXPORT_COMPILE_COMMANDS YES)
 
 project(GBA)
 
@@ -16,6 +17,8 @@ set(GBA_SOURCE_FILES
     src/Bus.cpp
     src/Bus.hpp
     src/Helpers.hpp
+    src/Cartridge.cpp
+    src/Cartridge.hpp
     )
     
 add_executable(${TARGET_NAME} ${GBA_SOURCE_FILES})

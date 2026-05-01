@@ -65,7 +65,7 @@ Byte Bus::ReadByte(Word addr) {
 void Bus::WriteByte(Word addr, Byte value)
 {
     if (addr >= 0 && addr <= 0x3FFF) {
-        _bios[addr] = value;
+        // BIOS ROM
     } else if (addr >= 0x02000000 && addr <= 0x0203FFFF) {
         _board_wram[addr & 0x3FFFF] = value;
     } else if (addr >= 0x03000000 && addr <= 0x03007FFF) {
