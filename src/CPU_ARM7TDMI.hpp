@@ -8,31 +8,9 @@
 
 class CPU_ARM7TDMI {
 
-    public:
-    // Lo registers
-    Word r0;
-    Word r1;
-    Word r2;
-    Word r3;
-    Word r4;
-    Word r5;
-    Word r6;
-    Word r7;
+private:
 
-    // Hi registers
-    Word r8, r8_fiq; 
-    Word r9, r9_fiq;
-    Word r10, r10_fiq;
-    Word r11, r11_fiq;
-    Word r12, r12_fiq;
-
-    // Special registers
-    Word r13, r13_svc, r13_abt, r13_irq, r13_und; // Stack pointer
-    Word r14, r14_svc, r14_abt, r14_irq, r14_und; // Link register
-    Word r15; // Program counter
-    
-    // Program status registers
-    struct cpsr {
+    struct StatusReg {
         union {
             Word value;
             struct {
@@ -48,9 +26,47 @@ class CPU_ARM7TDMI {
                 uint32_t N        : 1;  // Bit 31: Sign Flag
             };
         };
-    } cpsr;
+    };
 
-    Word spsr_fiq, spsr_svc, spsr_abt, spsr_irq, spsr_und;
+    enum class ProcessorMode {
+        USER = 0x10, // USER
+        FIQ = 0x11, // FAST INTERRUPT
+        IRQ = 0x12, // INTERRUPT 
+        SVC = 0x13, // SUPERVISOR
+        ABT = 0x17, // ABORT
+        UND = 0x1B, // UNDEFINED
+        SYSTEM = 0x1F // PRIVILEGED
+    };
+
+    // Word _r0, _r1, _r2, _r3, _r4, _r5, _r6, _r7 = 0;
+    // Word _r8, _r8_fiq, _r9, _r9_fiq, _r10, _r10_fiq, _r11, _r11_fiq, _r12, _r12_fiq = 0;
+    // Word _r13, _r13_svc, _r13_abt, _r13_irq, _r13_und = 0;  // Stack pointer
+    // Word _r14, _r14_svc, _r14_abt, _r14_irq, _r14_und = 0;  // Link register
+    // Word _r15 = 0;                                          // Program counter
+    // StatusReg _cpsr {};
+    // StatusReg _spsr_fiq, _spsr_svc, _spsr_abt, _spsr_irq, _spsr_und {};
+
+    Word _regs[16] {};
+    Word _regs_fiq[16] {};
+    Word _regs_svc[16] {};
+    Word _regs_abt[16] {};
+    Word _regs_irq[16] {};
+    Word _regs_und[16] {};
+    StatusReg _cpsr {};
+    StatusReg _spsr_fiq, _spsr_svc, _spsr_abt, _spsr_irq, _spsr_und {};
+
+    Word GetReg(int index);
+    void SetReg(int index, Word value);
+
+    StatusReg GetCPSR();
+    void SetCPSR(StatusReg value);
+
+    StatusReg GetSPSR();
+    void SetSPSR(StatusReg value);
+
+public:
+
+
 
     CPU_ARM7TDMI();
     

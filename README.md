@@ -7,6 +7,6 @@ mkdir build
 cd build
 cmake ..
 make
-./gba <path to rom>
+./GBA <path to rom>
 ```
 

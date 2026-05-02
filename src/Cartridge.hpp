@@ -27,7 +27,9 @@
   0E0h    4     JOYBUS Entry Pt. (32bit ARM branch opcode, eg. "B joy_start")
 */
 
-#pragma push(pack, 1)
+static_assert(true); // Shut up clangd!
+#pragma pack(push)
+#pragma pack(1)
 struct CartridgeHeader {
     Byte rom_entry_point[4];
     Byte nintendo_logo[156];
@@ -45,13 +47,13 @@ struct CartridgeHeader {
     Byte boot_mode;
     Byte slave_id_number;
     Byte reserved3[26];
-    Byte joybust_entry_pt[4];
+    Byte joybus_entry_pt[4];
 };
-#pragma pop(pack)
+#pragma pack(pop)
 
 class Cartridge {
 private:
-    std::filesystem::path _file_path;
+    std::filesystem::path _file_path = "";
     std::vector<Byte> _rom;
 public:
     Cartridge();
