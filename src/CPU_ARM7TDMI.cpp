@@ -1,177 +1,108 @@
 #include "CPU_ARM7TDMI.hpp"
+#include "Bus.hpp"
 #include "Types.hpp"
+#include <memory>
 
-CPU_ARM7TDMI::CPU_ARM7TDMI() 
+CPU_ARM7TDMI::CPU_ARM7TDMI(std::shared_ptr<IBus> bus) :
+_bus(bus)
 {
     
 }
 
-Word CPU_ARM7TDMI::GetReg(int index)
-{
-    switch (index) {
-        case 0: case 1: case 2: case 3: case 4: case 5: case 6: case 7: case 15: 
-        {
-            return _regs[index];
-        }
-        case 8: case 9: case 10: case 11: case 12:
-        {
-            if (static_cast<ProcessorMode>(GetCPSR().mode) == ProcessorMode::FIQ) 
-            { 
-                return _regs_fiq[index];
-            } 
-            else {
-                return _regs[index];
-            }
-        }
-        case 13: case 14: 
-        {
-            switch (static_cast<ProcessorMode>(GetCPSR().mode)) 
-            {
-                case ProcessorMode::SVC:
-                {
-                    return _regs_svc[index];
-                }
-                case ProcessorMode::ABT:
-                {
-                    return _regs_abt[index];
-                }
-                case ProcessorMode::IRQ:
-                {
-                    return _regs_irq[index];
-                }
-                case ProcessorMode::UND:
-                {
-                    return _regs_und[index];
-                }
-                default:
-                {
-                    return _regs[index];
-                }
-            }
-        }
+Word* CPU_ARM7TDMI::Reg(int index) {
+    if (index < 8 || index == 15) return &_regs[index];
+
+    ProcessorMode mode = static_cast<ProcessorMode>(CPSR()->mode);
+
+    switch (mode) {
+        case ProcessorMode::FIQ:
+            return (index >= 8 && index <= 14) ? &_regs_fiq[index] : &_regs[index];
+        case ProcessorMode::SVC:
+            return (index == 13 || index == 14) ? &_regs_svc[index] : &_regs[index];
+        case ProcessorMode::ABT:
+            return (index == 13 || index == 14) ? &_regs_abt[index] : &_regs[index];
+        case ProcessorMode::IRQ:
+            return (index == 13 || index == 14) ? &_regs_irq[index] : &_regs[index];
+        case ProcessorMode::UND:
+            return (index == 13 || index == 14) ? &_regs_und[index] : &_regs[index];
         default:
-        {
-            return 0;
-        }
+            return &_regs[index]; // USER / SYSTEM mode
     }
 }
 
-void CPU_ARM7TDMI::SetReg(int index, Word value)
+CPU_ARM7TDMI::StatusReg* CPU_ARM7TDMI::CPSR()
 {
-    switch (index) {
-        case 0: case 1: case 2: case 3: case 4: case 5: case 6: case 7: case 15: 
-        {
-            _regs[index] = value; break;
-        }
-        case 8: case 9: case 10: case 11: case 12:
-        {
-            if (static_cast<ProcessorMode>(GetCPSR().mode) == ProcessorMode::FIQ) 
-            { 
-                _regs_fiq[index] = value; break;
-            } 
-            else {
-                _regs[index] = value; break;
-            }
-        }
-        case 13: case 14: 
-        {
-            switch (static_cast<ProcessorMode>(GetCPSR().mode)) 
-            {
-                case ProcessorMode::SVC:
-                {
-                    _regs_svc[index] = value; break;
-                }
-                case ProcessorMode::ABT:
-                {
-                    _regs_abt[index] = value; break;
-                }
-                case ProcessorMode::IRQ:
-                {
-                    _regs_irq[index] = value; break;
-                }
-                case ProcessorMode::UND:
-                {
-                    _regs_und[index] = value; break;
-                }
-                default:
-                {
-                    _regs[index] = value; break;
-                }
-            }
-        }
-    }
+    return &_cpsr;
 }
 
-CPU_ARM7TDMI::StatusReg CPU_ARM7TDMI::GetCPSR()
+CPU_ARM7TDMI::StatusReg* CPU_ARM7TDMI::SPSR()
 {
-    return _cpsr;
-}
-
-void CPU_ARM7TDMI::SetCPSR(StatusReg value)
-{
-    _cpsr = value;
-}
-
-CPU_ARM7TDMI::StatusReg CPU_ARM7TDMI::GetSPSR()
-{
-    switch (static_cast<ProcessorMode>(GetCPSR().mode))
+    switch (static_cast<ProcessorMode>(CPSR()->mode))
     {
         case ProcessorMode::FIQ: 
         {
-            return _spsr_fiq;
+            return &_spsr_fiq;
         }
         case ProcessorMode::SVC:
         {
-            return _spsr_svc;
+            return &_spsr_svc;
         }
         case ProcessorMode::ABT:
         {
-            return _spsr_abt;
+            return &_spsr_abt;
         }
         case ProcessorMode::IRQ:
         {
-            return _spsr_irq;
+            return &_spsr_irq;
         }
         case ProcessorMode::UND:
         {
-            return _spsr_und;
+            return &_spsr_und;
         }
         default:
         {
-            return _cpsr; // SPSR does not exist in USER or SYSTEM mode. Usually returns value of CPSR. This is undefined behaviour.
+            return &_cpsr; // SPSR does not exist in USER or SYSTEM mode. Usually returns value of CPSR. This is undefined behaviour.
         }
     }
 }
 
-void CPU_ARM7TDMI::SetSPSR(StatusReg value)
+Word CPU_ARM7TDMI::FetchWord() 
 {
-    switch (static_cast<ProcessorMode>(GetCPSR().mode))
-    {
-        case ProcessorMode::FIQ: 
-        {
-            _spsr_fiq = value; break;
-        }
-        case ProcessorMode::SVC:
-        {
-            _spsr_svc = value; break;
-        }
-        case ProcessorMode::ABT:
-        {
-            _spsr_abt = value; break;
-        }
-        case ProcessorMode::IRQ:
-        {
-            _spsr_irq = value; break;
-        }
-        case ProcessorMode::UND:
-        {
-            _spsr_und = value; break;
-        }
-        default:
-        {
-            break; // SPSR does not exist in USER or SYSTEM mode. Usually treated as a NOP. This is undefined behaviour.
-        }
+    Word pc = *Reg(15);
+    Word opcode = _bus->ReadWord(pc);
+    *Reg(15) += 4; // Increment PC
+    return opcode;
+}
+
+bool CPU_ARM7TDMI::CheckCondition(Byte cond)
+{
+    bool n = CPSR()->N;
+    bool z = CPSR()->Z;
+    bool c = CPSR()->C;
+    bool v = CPSR()->V;
+
+    switch (cond) {
+        case 0x0: return z;               // EQ
+        case 0x1: return !z;              // NE
+        case 0x2: return c;               // CS/HS
+        case 0x3: return !c;              // CC/LO
+        case 0x4: return n;               // MI
+        case 0x5: return !n;              // PL
+        case 0x6: return v;               // VS
+        case 0x7: return !v;              // VC
+        case 0x8: return c && !z;         // HI
+        case 0x9: return !c || z;         // LS
+        case 0xA: return n == v;          // GE
+        case 0xB: return n != v;          // LT
+        case 0xC: return !z && (n == v);  // GT
+        case 0xD: return z || (n != v);   // LE
+        case 0xE: return true;            // AL (Always)
+        default: return false;
     }
+}
+
+void CPU_ARM7TDMI::ExecuteARM(Word opcode) {
+
 }
 
 void CPU_ARM7TDMI::Reset() 
@@ -179,7 +110,13 @@ void CPU_ARM7TDMI::Reset()
 
 }
 
-void CPU_ARM7TDMI::Clock() 
-{
+void CPU_ARM7TDMI::Clock() {
 
+    Word opcode = FetchWord();
+
+    if (CPSR()->T == 0) {
+        ExecuteARM(opcode);
+    } else {
+        // TODO: ExecuteTHUMB
+    }
 }

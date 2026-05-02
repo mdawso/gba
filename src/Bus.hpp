@@ -3,7 +3,6 @@
 #include "Types.hpp"
 
 #include <array>
-#include <memory>
 
 /*
 General Internal Memory

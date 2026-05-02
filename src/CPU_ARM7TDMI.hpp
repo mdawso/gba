@@ -1,14 +1,16 @@
-// ARM7TDMI Implementation
-
 #pragma once
 
+#include "Bus.hpp"
 #include "Types.hpp"
+#include <memory>
 
 // https://mgba-emu.github.io/gbatek
 
 class CPU_ARM7TDMI {
 
 private:
+
+    std::shared_ptr<IBus> _bus{};
 
     struct StatusReg {
         union {
@@ -55,20 +57,25 @@ private:
     StatusReg _cpsr {};
     StatusReg _spsr_fiq, _spsr_svc, _spsr_abt, _spsr_irq, _spsr_und {};
 
-    Word GetReg(int index);
-    void SetReg(int index, Word value);
+    Word* Reg(int index);
+    StatusReg* CPSR();
+    StatusReg* SPSR();
 
-    StatusReg GetCPSR();
-    void SetCPSR(StatusReg value);
+    // Instruction will act as NOP if cond is not met.
+    bool CheckCondition(Byte cond);
 
-    StatusReg GetSPSR();
-    void SetSPSR(StatusReg value);
+    Word FetchWord();
+
+    // [Cond:4][00][I:1][OpCode:4][S:1][Rn:4][Rd:4][Operand2:12]
+    void ExecuteARM(Word opcode);
+    void ExecuteTHUMB(Halfword opcode);
+
+    // Barrel shifter helper
+    Word GetOperand2(Word opcode, bool immediate, bool& carryOut);
 
 public:
 
-
-
-    CPU_ARM7TDMI();
+    CPU_ARM7TDMI(std::shared_ptr<IBus> bus);
     
     void Reset();
 
