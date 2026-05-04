@@ -1,8 +1,11 @@
 #pragma once
 
-#include "Bus.hpp"
 #include "Types.hpp"
-#include <memory>
+
+class IBus;
+
+#include <array>
+#include <string>
 
 // https://mgba-emu.github.io/gbatek
 
@@ -10,24 +13,37 @@ class CPU_ARM7TDMI {
 
 private:
 
-    std::shared_ptr<IBus> _bus{};
+    IBus* _bus{};
 
     struct StatusReg {
-        union {
-            Word value;
-            struct {
-                uint32_t mode     : 5;  // Bits 0-4: Mode bits
-                uint32_t T        : 1;  // Bit 5: State bit (ARM/THUMB)
-                uint32_t F        : 1;  // Bit 6: FIQ disable
-                uint32_t I        : 1;  // Bit 7: IRQ disable
-                uint32_t reserved : 19; // Bits 8-26: Reserved
-                uint32_t Q        : 1;  // Bit 27: Sticky Overflow
-                uint32_t V        : 1;  // Bit 28: Overflow Flag
-                uint32_t C        : 1;  // Bit 29: Carry Flag
-                uint32_t Z        : 1;  // Bit 30: Zero Flag
-                uint32_t N        : 1;  // Bit 31: Sign Flag
-            };
-        };
+        Word value{};
+
+        Word GetMode() const { return value & 0x1F; }
+        void SetMode(Word mode) { value = (value & ~0x1F) | (mode & 0x1F); }
+
+        bool GetT() const { return (value >> 5) & 1; }
+        void SetT(bool t) { value = (value & ~(1 << 5)) | (t << 5); }
+
+        bool GetF() const { return (value >> 6) & 1; }
+        void SetF(bool f) { value = (value & ~(1 << 6)) | (f << 6); }
+
+        bool GetI() const { return (value >> 7) & 1; }
+        void SetI(bool i) { value = (value & ~(1 << 7)) | (i << 7); }
+
+        bool GetQ() const { return (value >> 27) & 1; }
+        void SetQ(bool q) { value = (value & ~(1 << 27)) | (q << 27); }
+
+        bool GetV() const { return (value >> 28) & 1; }
+        void SetV(bool v) { value = (value & ~(1 << 28)) | (v << 28); }
+
+        bool GetC() const { return (value >> 29) & 1; }
+        void SetC(bool c) { value = (value & ~(1 << 29)) | (c << 29); }
+
+        bool GetZ() const { return (value >> 30) & 1; }
+        void SetZ(bool z) { value = (value & ~(1 << 30)) | (z << 30); }
+
+        bool GetN() const { return (value >> 31) & 1; }
+        void SetN(bool n) { value = (value & ~(1 << 31)) | (n << 31); }
     };
 
     enum class ProcessorMode {
@@ -40,22 +56,14 @@ private:
         SYSTEM = 0x1F // PRIVILEGED
     };
 
-    // Word _r0, _r1, _r2, _r3, _r4, _r5, _r6, _r7 = 0;
-    // Word _r8, _r8_fiq, _r9, _r9_fiq, _r10, _r10_fiq, _r11, _r11_fiq, _r12, _r12_fiq = 0;
-    // Word _r13, _r13_svc, _r13_abt, _r13_irq, _r13_und = 0;  // Stack pointer
-    // Word _r14, _r14_svc, _r14_abt, _r14_irq, _r14_und = 0;  // Link register
-    // Word _r15 = 0;                                          // Program counter
-    // StatusReg _cpsr {};
-    // StatusReg _spsr_fiq, _spsr_svc, _spsr_abt, _spsr_irq, _spsr_und {};
-
-    Word _regs[16] {};
-    Word _regs_fiq[16] {};
-    Word _regs_svc[16] {};
-    Word _regs_abt[16] {};
-    Word _regs_irq[16] {};
-    Word _regs_und[16] {};
-    StatusReg _cpsr {};
-    StatusReg _spsr_fiq, _spsr_svc, _spsr_abt, _spsr_irq, _spsr_und {};
+    std::array<Word, 16> _regs{};
+    std::array<Word, 16> _regs_fiq{};
+    std::array<Word, 16> _regs_svc{};
+    std::array<Word, 16> _regs_abt{};
+    std::array<Word, 16> _regs_irq{};
+    std::array<Word, 16> _regs_und{};
+    StatusReg _cpsr{};
+    StatusReg _spsr_fiq, _spsr_svc, _spsr_abt, _spsr_irq, _spsr_und{};
 
     Word* Reg(int index);
     StatusReg* CPSR();
@@ -65,18 +73,21 @@ private:
     bool CheckCondition(Byte cond);
 
     Word FetchWord();
+    HalfWord FetchHalfword();
 
     // [Cond:4][00][I:1][OpCode:4][S:1][Rn:4][Rd:4][Operand2:12]
     void ExecuteARM(Word opcode);
-    void ExecuteTHUMB(Halfword opcode);
+    void ExecuteTHUMB(HalfWord opcode);
 
     // Barrel shifter helper
     Word GetOperand2(Word opcode, bool immediate, bool& carryOut);
-
+    
 public:
 
-    CPU_ARM7TDMI(std::shared_ptr<IBus> bus);
-    
+    CPU_ARM7TDMI(IBus* bus);
+
+    std::string DEBUG_GetDebugString();
+
     void Reset();
 
     void Clock();

@@ -18,3 +18,5 @@ make
 ./GBA <path to rom>
 ```
 
+## About
+This is a GBA emulator I am working on. The architecture is based on that of my previous NES emulator, a central memory bus that owns the components. It has been developed primarily on Linux, so I'm not sure about Windows compatibility.
