@@ -15,6 +15,26 @@ private:
 
     IBus* _bus{};
 
+    /*
+    struct StatusReg {
+        union {
+            Word value;
+            struct {
+                uint32_t mode     : 5;  // Bits 0-4: Mode bits
+                uint32_t T        : 1;  // Bit 5: State bit (ARM/THUMB)
+                uint32_t F        : 1;  // Bit 6: FIQ disable
+                uint32_t I        : 1;  // Bit 7: IRQ disable
+                uint32_t reserved : 19; // Bits 8-26: Reserved
+                uint32_t Q        : 1;  // Bit 27: Sticky Overflow
+                uint32_t V        : 1;  // Bit 28: Overflow Flag
+                uint32_t C        : 1;  // Bit 29: Carry Flag
+                uint32_t Z        : 1;  // Bit 30: Zero Flag
+                uint32_t N        : 1;  // Bit 31: Sign Flag
+            };
+        };
+    };
+    */
+
     struct StatusReg {
         Word value{};
 

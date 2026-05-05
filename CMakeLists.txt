@@ -19,7 +19,7 @@ set(GBA_SOURCE_FILES
     src/Helpers.hpp
     src/Cartridge.cpp
     src/Cartridge.hpp
-    )
+)
     
 add_executable(${TARGET_NAME} ${GBA_SOURCE_FILES})
 

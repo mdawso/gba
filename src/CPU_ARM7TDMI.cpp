@@ -9,11 +9,10 @@ CPU_ARM7TDMI::CPU_ARM7TDMI(IBus* bus)
 }
 
 Word* CPU_ARM7TDMI::Reg(int index) {
+    
     if (index < 8 || index == 15) return &_regs[index];
 
-    ProcessorMode mode = static_cast<ProcessorMode>(CPSR()->GetMode());
-
-    switch (mode) {
+    switch (static_cast<ProcessorMode>(CPSR()->GetMode())) {
         case ProcessorMode::FIQ:
             return (index >= 8 && index <= 14) ? &_regs_fiq[index] : &_regs[index];
         case ProcessorMode::SVC:
@@ -137,33 +136,38 @@ std::string CPU_ARM7TDMI::DEBUG_GetDebugString() {
     );
 }
 
-static bool _SignBitPresent(Word word) { return (word >> 31) & 0x1; }
-static bool _SignBitPresent(DoubleWord dword) { return (dword >> 63) & 0x1;}
+static inline bool _SignBitPresent(Word word) { return (word >> 31) & 0x1; }
+static inline bool _SignBitPresent(DoubleWord dword) { return (dword >> 63) & 0x1;}
 
-static bool _UndefinedInst(Byte op) { return (op & 0x0FFFFFF) == 0x0FFFFF; }
+static inline bool _UndefinedInst(Byte op) { return (op & 0x0FFFFFF) == 0x0FFFFF; }
 
 // Checkers
-static Byte _GetCond(Word opcode) { return (opcode >> 28) & 0xF; }
-// bits 27-25 provide the primary classification of the instruction
-static Byte _GetType(Word opcode) { return (opcode >> 25) & 0x7; }
+static inline Byte _GetCond(Word opcode) { return (opcode >> 28) & 0xF; } // bits 32-28 are cond
+static inline Byte _GetType(Word opcode) { return (opcode >> 25) & 0x7; } // bits 27-25 provide the primary classification of the instruction
+
+enum ARMInstType {
+    DATA_PROC_OR_PSR  = 0, // 000
+    IMMEDIATE_OFFSET  = 1, // 001
+    LOAD_STORE_IMM    = 2, // 010
+    LOAD_STORE_REG    = 3, // 011
+    BLOCK_TRANSFER    = 4, // 100
+    BRANCH            = 5, // 101
+    COPROC_LOAD_STORE = 6, // 110
+    COPROC_REG_OP     = 7  // 111
+};
 
 // [Cond:4][00][I:1][OpCode:4][S:1][Rn:4][Rd:4][Operand2:12]
 void CPU_ARM7TDMI::ExecuteARM(Word opcode) 
 {
-    Byte cond = _GetCond(opcode);
     
-    if (!CheckCondition(cond)) {
-        return;
-    }
-    
-    if (_UndefinedInst(opcode)) {
-        return;
-    }
+    // do not execute if condition is not met or instruction is undefined
+    if (!CheckCondition(_GetCond(opcode))) return;
+    if (_UndefinedInst(opcode)) return;
 
     Byte type = _GetType(opcode);
 
-    // type 0b000 signifies MULs, Extra LDAs + STAs, ALU ops
-    if (type == 0b000) {
+    // MULs, Extra LDAs + STAs, ALU ops
+    if (type == DATA_PROC_OR_PSR) {
         if ((opcode & 0x00000090) == 0x00000090) { // bits 4 and 7
             if ((opcode & 0x0F800000) == 0x00000000) { // 32 bit MULs
                 // Multiply (MUL) and Multiply-Accumulate (MLA)
@@ -322,7 +326,7 @@ void CPU_ARM7TDMI::ExecuteARM(Word opcode)
     }
 
     // ALU operations
-    if (type == 0b000 || type == 0b001) {
+    if (type == DATA_PROC_OR_PSR || type == IMMEDIATE_OFFSET) {
         bool i = (opcode >> 25) & 0x1; // immediate?
         Byte opCode = (opcode >> 21) & 0xF;
         bool s = (opcode >> 20) & 0x1; // set condition codes flag?
@@ -406,7 +410,7 @@ void CPU_ARM7TDMI::ExecuteARM(Word opcode)
                 }
             }
         }
-    } else if (type == 0b010 || type == 0b011) {
+    } else if (type == LOAD_STORE_IMM || type == LOAD_STORE_REG) {
         // Single Data Transfer (LDR, STR)
         bool i = (opcode >> 25) & 0x1; // immediate or reg offset?
         bool p = (opcode >> 24) & 0x1; // pre or post index?
@@ -421,7 +425,7 @@ void CPU_ARM7TDMI::ExecuteARM(Word opcode)
         if (!i) {
             offset = opcode & 0xFFF;
         } else {
-            bool dummyCarry;
+            bool dummyCarry{};
             offset = GetOperand2(opcode, false, dummyCarry);
         }
 
@@ -459,7 +463,7 @@ void CPU_ARM7TDMI::ExecuteARM(Word opcode)
             *Reg(rn) = u ? (addr + offset) : (addr - offset);
         }
 
-    } else if (type == 0b100) {
+    } else if (type == BLOCK_TRANSFER) {
         // Block Data Transfer (LDM, STM)
         // Load or Store multiple registers at once.
         bool p = (opcode >> 24) & 0x1; // pre or post?
@@ -509,7 +513,7 @@ void CPU_ARM7TDMI::ExecuteARM(Word opcode)
             }
         }
 
-    } else if (type == 0b101) {
+    } else if (type == BRANCH) {
         // Branch (B) and Branch with Link (BL)
         bool l = (opcode >> 24) & 0x1; // save return address?
         Word offset = opcode & 0xFFFFFF;
@@ -525,7 +529,7 @@ void CPU_ARM7TDMI::ExecuteARM(Word opcode)
         }
         
         *Reg(15) += offset;
-    } else if (type == 0b111) {
+    } else if (type == COPROC_REG_OP) {
         // Software Interrupt (SWI)
         if ((opcode & 0x0F000000) == 0x0F000000) {
             // backup flags, switch to supervisor mode, disable IRQs, save pc to lr, jump to swi vector
