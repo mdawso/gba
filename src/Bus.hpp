@@ -7,6 +7,7 @@
 class IBus;
 
 #include "CPU_ARM7TDMI.hpp"
+#include "PPU.hpp"
 
 class IBus
 {
@@ -31,6 +32,7 @@ std::array<Byte, 1024 * 16> _bios{};
 std::array<Byte, 1024 * 256> _board_wram{};
 std::array<Byte, 1024 * 32> _chip_wram{};
 CPU_ARM7TDMI _cpu;
+PPU _ppu;
 
 public:
     SystemBus();

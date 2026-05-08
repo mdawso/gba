@@ -50,7 +50,8 @@ void SimpleBus::Tick()
 } 
 
 SystemBus::SystemBus() :
-_cpu(CPU_ARM7TDMI(this))
+_cpu(CPU_ARM7TDMI(this)),
+_ppu(PPU(this))
 {
     _cpu.Reset();
 }
@@ -150,4 +151,5 @@ void SystemBus::WriteByte(Word addr, Byte value)
 void SystemBus::Tick()
 {
     _cpu.Clock();
+    _ppu.Clock();
 }
