@@ -4,11 +4,12 @@
 - A C++ Compiler (gcc/clang)
 - CMake
 - Git
-
+- Raylib build dependencies ([See here](https://github.com/raysan5/raylib/wiki/Working-on-GNU-Linux))
 
 ## Quick Start
 
 Make sure to clone with `--recurse-submodules`.
+Alternatively run `git submodule init` then `git submodule update` after cloning.
 
 ```sh
 mkdir build

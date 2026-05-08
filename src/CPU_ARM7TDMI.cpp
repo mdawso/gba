@@ -156,6 +156,22 @@ enum ARMInstType {
     COPROC_REG_OP     = 7  // 111
 };
 
+// struct ARMInst {
+//     union {
+//         Word raw;
+//         struct {
+//             unsigned int operand2 : 12; // [11:0] - Immediate value or register shift specs
+//             unsigned int rd       : 4;  // [15:12] - Destination register
+//             unsigned int rn       : 4;  // [19:16] - First operand register
+//             unsigned int s        : 1;  // [20] - Set condition codes
+//             unsigned int opCode   : 4;  // [24:21] - Operation code (AND, EOR, SUB, etc.)
+//             unsigned int i        : 1;  // [25] - Immediate Operand flag
+//             unsigned int type     : 2;  // [27:26] - Instruction type (00 for Data Processing)
+//             unsigned int cond     : 4;  // [31:28] - Condition field
+//         };
+//     };
+// };
+
 // [Cond:4][00][I:1][OpCode:4][S:1][Rn:4][Rd:4][Operand2:12]
 void CPU_ARM7TDMI::ExecuteARM(Word opcode) 
 {
