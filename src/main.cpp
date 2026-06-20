@@ -36,7 +36,6 @@ int main(int argc, char** argv) {
     bus->WriteWord(0x30, 0xE58F9014); // STR R9, [PC, #20]   
     bus->WriteWord(0x34, 0xEAFFFFFE); // B 0x34
 
-    // --- Data Section ---
     bus->WriteWord(0x38, 0xE1A00000); // NOP
     bus->WriteWord(0x3C, 0xE1A00000); // NOP
     bus->WriteWord(0x40, 0xE1A00000); // NOP
@@ -50,16 +49,16 @@ int main(int argc, char** argv) {
     std::println("Done.");
     
 
-    // SetTargetFPS(60);
-    // InitWindow(800, 600, "GBA");
+    SetTargetFPS(60);
+    InitWindow(800, 600, "GBA");
 
-    // while (!WindowShouldClose()) {
-    //     BeginDrawing();
-    //     ClearBackground(RAYWHITE);
+    while (!WindowShouldClose()) {
+        BeginDrawing();
+        ClearBackground(RAYWHITE);
 
-    //     EndDrawing();
-    // }
+        EndDrawing();
+    }
 
-    // CloseWindow();
+    CloseWindow();
 
 }
